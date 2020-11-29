@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
           if (!headers.contains(cursor.getColumnName(index))) {
             headers.add(cursor.getColumnName(index));
           }
-          row += cursor.getString(index) + ";";
+          row += getCsvSuitableFormat(cursor.getString(index)) + ";";
         }
         row += "\n";
         dataset.append(row);
@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
       do {
         String row = "";
         for (int index = 0; index < cursor.getColumnCount(); index++) {
-          row += cursor.getString(index) + ";";
+          row += getCsvSuitableFormat(cursor.getString(index)) + ";";
         }
         row += "\n";
         dataset.append(row);
@@ -110,4 +110,39 @@ public class MainActivity extends AppCompatActivity {
       throw new Exception("Fails to retrieve SMS sent messages.");
     }
   }
+
+  private String getCsvSuitableFormat(String input) {
+    /*
+    * Per RFC 4180
+    * [definition of the CSV format](https://tools.ietf.org/html/rfc4180#page-2)
+    *
+    * "Fields containing line breaks (CRLF), double quotes, and commas
+    *  should be enclosed in double-quotes."
+    *
+    * "If double-quotes are used to enclose fields, then a double-quote
+    * appearing inside a field must be escaped by preceding it with
+    * another double quote."
+    **/
+
+    // do nothing if null object reference is passed in
+    if (input == null){
+      return input;
+    }
+
+    // wrap with double quotes if the string contains newlines, commas, double-
+    // quotes, or semicolons (because we delimit with semicolon).
+    // And ensure double-quotes inside the field get
+    // preceded by an additional double quote.
+    if (
+      input.contains("\n") ||
+      input.contains(";") ||
+      input.contains(",") ||
+      input.contains("\"")
+    ){
+      return  "\"" + input.replace("\"", "\"\"") + "\"";
+    }
+
+    return input;
+  }
 }
+
